@@ -23,9 +23,8 @@ keycloak:
   replicas: 1
 
   image:
-    repository: docker.io/jboss/keycloak
-    # Overrides the image tag whose default is the chart version.
-    tag: ""
+    repository: jboss/keycloak
+    tag: 9.0.2
     pullPolicy: IfNotPresent
 
     ## Optionally specify an array of imagePullSecrets.
@@ -177,6 +176,20 @@ keycloak:
     # requests:
     #   cpu: "100m"
     #   memory: "1024Mi"
+
+  # The following will enable PKI authentication
+  # You will need to create a config-map that hosts your keystore/truststore.
+
+  pki:
+    enabled: true
+    configMap: keycloak-stores
+    keystore:
+      alias: keycloak
+      password: password
+      config_key: keystore.jks
+    truststore:
+      password: password
+      config_key: truststore.jks
 
   ## WildFly CLI configurations. They all end up in the file 'keycloak.cli' configured in the configmap which is
   ## executed on server startup.

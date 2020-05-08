@@ -81,7 +81,7 @@ spec:
     {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
           imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.keycloak.containerSecurityContext | nindent 12 }}
@@ -110,6 +110,18 @@ spec:
             - name: KEYCLOAK_SERVICE_DNS_NAME
               value: "{{ include "keycloak.serviceDnsName" . }}"
           {{- end }}
+          {{- if .Values.keycloak.pki.enabled }}
+            - name: PKI_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.fullname" . }}-pki
+                  key: keystore_pass
+            - name: PKI_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.fullname" . }}-pki
+                  key: truststore_pass
+          {{- end }}
             {{- include "keycloak.dbEnvVars" . | nindent 12 }}
           {{- with .Values.keycloak.extraEnv }}
             {{- tpl . $ | nindent 12 }}
@@ -121,6 +133,16 @@ spec:
             - name: secrets
               mountPath: /secrets
               readOnly: true
+            {{- if .Values.keycloak.pki.enabled }}
+            - name: pki-keystores
+              mountPath: /opt/jboss/keycloak/standalone/configuration/keystore.jks
+              subPath: {{ .Values.keycloak.pki.keystore.config_key }}
+              readOnly: true
+            - name: pki-keystores
+              mountPath: /opt/jboss/keycloak/standalone/configuration/truststore.jks
+              subPath: {{ .Values.keycloak.pki.truststore.config_key }}
+              readOnly: true
+            {{- end }}
             {{- if or .Values.keycloak.cli.enabled .Values.keycloak.startupScripts }}
             - name: startup
               mountPath: /opt/jboss/startup-scripts
@@ -181,6 +203,12 @@ spec:
         - name: secrets
           secret:
             secretName: {{ include "keycloak.secret" . }}
+      {{- if .Values.keycloak.pki.enabled }}
+        - name: pki-keystores
+          configMap:
+            name: {{ .Values.keycloak.pki.configMap }}
+            defaultMode: 0555
+      {{- end }}
       {{- if or .Values.keycloak.cli.enabled .Values.keycloak.startupScripts }}
         - name: startup
           configMap:

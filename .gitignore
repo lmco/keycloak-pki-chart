@@ -1,10 +1,2 @@
-.idea
+.idea/
 *.iml
-.project
-.classpath
-.history
-.settings
-.deploy
-venv
-charts/**/charts
-.cr-*

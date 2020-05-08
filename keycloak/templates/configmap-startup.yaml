@@ -19,6 +19,16 @@ data:
     {{- end }}
   {{ end }}
 
+  {{- if .Values.keycloak.pki.enabled }}
+    /core-service=management/security-realm=ssl-realm:add()
+    /core-service=management/security-realm=UndertowRealm:add()
+    /core-service=management/security-realm=UndertowRealm/server-identity=ssl:add(alias={{ .Values.keycloak.pki.keystore.alias }},keystore-path=keystore.jks, keystore-relative-to=jboss.server.config.dir, keystore-password=${env.PKI_KEYSTORE_PASS})
+    /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:remove()
+    /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:add(alias={{ .Values.keycloak.pki.keystore.alias }},keystore-path=keystore.jks, keystore-relative-to=jboss.server.config.dir, keystore-password=${env.PKI_KEYSTORE_PASS})
+    /core-service=management/security-realm=ssl-realm/server-identity=ssl:add(alias={{ .Values.keycloak.pki.keystore.alias }},keystore-relative-to=jboss.standalone.config.dir,keystore-password=${env.PKI_KEYSTORE_PASS},keystore-path=keystore.jks)
+    /core-service=management/security-realm=ssl-realm/authentication=truststore:add(keystore-path=truststore.jks,keystore-relative-to=jboss.standalone.config.dir,keystore-password=${env.PKI_TRUSTSTORE_PASS})
+  {{ end }}
+
   {{- with .Values.keycloak.cli }}
 
     {{- tpl .nodeIdentifier $ | nindent 4 }}
