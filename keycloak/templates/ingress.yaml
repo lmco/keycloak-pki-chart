@@ -1,4 +1,5 @@
 {{- $ingress := .Values.keycloak.ingress -}}
+{{- $pki := .Values.keycloak.pki -}}
 {{- if $ingress.enabled -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -13,6 +14,7 @@ metadata:
     {{- with $ingress.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+    foo: bar
 spec:
 {{- if $ingress.tls }}
   tls:
@@ -29,9 +31,16 @@ spec:
     - host: {{ . }}
       http:
         paths:
+  {{- if $pki.enabled }}
+          - path: {{ $ingress.path }}
+            backend:
+              serviceName: {{ include "keycloak.fullname" $ }}-http
+              servicePort: https
+  {{- else }}
           - path: {{ $ingress.path }}
             backend:
               serviceName: {{ include "keycloak.fullname" $ }}-http
               servicePort: http
+  {{- end }}
   {{- end }}
 {{- end -}}

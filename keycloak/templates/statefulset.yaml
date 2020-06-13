@@ -136,11 +136,11 @@ spec:
             {{- if .Values.keycloak.pki.enabled }}
             - name: pki-keystores
               mountPath: /opt/jboss/keycloak/standalone/configuration/keystore.jks
-              subPath: {{ .Values.keycloak.pki.keystore.config_key }}
+              subPath: keystore.jks
               readOnly: true
             - name: pki-keystores
               mountPath: /opt/jboss/keycloak/standalone/configuration/truststore.jks
-              subPath: {{ .Values.keycloak.pki.truststore.config_key }}
+              subPath: truststore.jks
               readOnly: true
             {{- end }}
             {{- if or .Values.keycloak.cli.enabled .Values.keycloak.startupScripts }}
@@ -206,7 +206,7 @@ spec:
       {{- if .Values.keycloak.pki.enabled }}
         - name: pki-keystores
           configMap:
-            name: {{ .Values.keycloak.pki.configMap }}
+            name: {{ include "keycloak.fullname" . }}-stores
             defaultMode: 0555
       {{- end }}
       {{- if or .Values.keycloak.cli.enabled .Values.keycloak.startupScripts }}

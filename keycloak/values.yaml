@@ -182,14 +182,11 @@ keycloak:
 
   pki:
     enabled: true
-    configMap: keycloak-stores
     keystore:
       alias: keycloak
       password: password
-      config_key: keystore.jks
     truststore:
       password: password
-      config_key: truststore.jks
 
   ## WildFly CLI configurations. They all end up in the file 'keycloak.cli' configured in the configmap which is
   ## executed on server startup.
@@ -260,12 +257,13 @@ keycloak:
   ## Ingress configuration.
   ## ref: https://kubernetes.io/docs/user-guide/ingress/
   ingress:
-    enabled: false
+    enabled: true
     path: /
 
-    annotations: {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       # ingress.kubernetes.io/affinity: cookie
 
     labels: {}
@@ -273,7 +271,7 @@ keycloak:
 
     ## List of hosts for the ingress
     hosts:
-      - keycloak.example.com
+      - keycloak.kube3.xyz
 
     ## TLS configuration
     tls: []
@@ -306,53 +304,16 @@ keycloak:
 
   ## Persistence configuration
   persistence:
-    # If true, the Postgres chart is deployed
-    deployPostgres: false
+    deployPostgres: true
+    dbVendor: postgres
 
-    # The database vendor. Can be either "postgres", "mysql", "mariadb", or "h2"
-    dbVendor: h2
-
-    ## The following values only apply if "deployPostgres" is set to "false"
-    dbName: keycloak
-    dbHost: mykeycloak
-    dbPort: 5432
-
-    ## Database Credentials are loaded from a Secret residing in the same Namespace as keycloak.
-    ## The Chart can read credentials from an existing Secret OR it can provision its own Secret.
-
-    ## Specify existing Secret
-    # If set, specifies the Name of an existing Secret to read db credentials from.
-    existingSecret: ""
-    existingSecretPasswordKey: ""  # read keycloak db password from existingSecret under this Key
-    existingSecretUsernameKey: ""  # read keycloak db user from existingSecret under this Key
-
-    ## Provision new Secret
-    # Only used if existingSecret is not specified. In this case a new secret is created
-    # populated by the variables below.
-    dbUser: keycloak
-    dbPassword: ""
 
 postgresql:
-  ### PostgreSQL User to create.
-  ##
   postgresqlUsername: keycloak
-
-  ## PostgreSQL Password for the new user.
-  ## If not set, a random 10 characters password will be used.
-  ##
-  postgresqlPassword: ""
-
-  ## PostgreSQL Database to create.
-  ##
+  postgresqlPassword: password
   postgresqlDatabase: keycloak
-
-  ## Persistent Volume Storage configuration.
-  ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes
-  ##
   persistence:
-    ## Enable PostgreSQL persistence using Persistent Volume Claims.
-    ##
-    enabled: false
+    enabled: true
 
 test:
   enabled: true
